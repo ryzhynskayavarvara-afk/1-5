@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>КиберЩит: мини-игра по кибербезопасности для 1–5 классов</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{min-height:100%}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+    background:linear-gradient(135deg,#dbeafe 0%,#dcfce7 100%);
+    color:#1e293b;line-height:1.5;
+    display:flex;justify-content:center;
+    padding:20px 14px 48px;
+  }
+  .app{width:100%;max-width:780px}
+
+  .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .brand{font-weight:800;font-size:20px;letter-spacing:.2px;display:flex;align-items:center;gap:8px}
+  .brand span{color:#2563eb}
+  .scorebox{font-size:15px;color:#475569;background:#ffffff;border:2px solid #cbd5e1;padding:6px 14px;border-radius:999px;font-weight:600}
+  .scorebox b{color:#2563eb;font-size:17px}
+
+  .progress{height:12px;background:#e2e8f0;border-radius:999px;overflow:hidden;border:1px solid #cbd5e1}
+  #bar{height:100%;width:0;background:linear-gradient(90deg,#3b82f6,#22c55e);transition:width .35s ease}
+
+  .meta{font-size:14px;color:#64748b;margin:9px 2px 14px;letter-spacing:.3px;font-weight:600}
+
+  .card{background:#ffffff;border:2px solid #e2e8f0;border-radius:24px;padding:24px;box-shadow:0 18px 40px rgba(0,0,0,.12)}
+
+  .h1{font-size:26px;margin:0 0 10px;color:#1e40af}
+  .lead{color:#334155;margin:0 0 16px;font-size:16px}
+  .rules{margin:0 0 22px;padding-left:22px;color:#475569;font-size:15px}
+  .rules li{margin-bottom:8px}
+
+  .tag{display:inline-block;font-size:12px;text-transform:uppercase;letter-spacing:.7px;padding:5px 12px;border-radius:999px;border:2px solid #cbd5e1;color:#475569;font-weight:700}
+  .tag.choice{color:#1d4ed8;border-color:#93c5fd;background:#eff6ff}
+  .tag.tf{color:#b45309;border-color:#fcd34d;background:#fffbeb}
+  .tag.open{color:#047857;border-color:#6ee7b7;background:#ecfdf5}
+
+  .qtext{font-size:20px;line-height:1.45;margin:12px 0 18px;font-weight:700;color:#0f172a}
+
+  .opts{display:grid;gap:12px}
+  .opt{
+    text-align:left;font:inherit;color:#1e293b;background:#f8fafc;border:2px solid #cbd5e1;
+    padding:15px 18px;border-radius:16px;cursor:pointer;transition:.15s;line-height:1.4;font-size:16px;font-weight:500;
+  }
+  .opt:hover:not(:disabled){background:#eff6ff;border-color:#93c5fd;transform:translateY(-1px)}
+  .opt:disabled{cursor:default;opacity:.9}
+  .opt.ok{background:#dcfce7;border-color:#22c55e;color:#166534}
+  .opt.bad{background:#fee2e2;border-color:#ef4444;color:#991b1b}
+
+  .openrow{display:flex;gap:10px;flex-wrap:wrap}
+  .openrow input{
+    flex:1;min-width:200px;font:inherit;font-size:16px;padding:14px 16px;border-radius:14px;
+    border:2px solid #cbd5e1;background:#f8fafc;color:#1e293b;outline:none;transition:.15s;
+  }
+  .openrow input:focus{border-color:#3b82f6;box-shadow:0 0 0 4px rgba(59,130,246,.15)}
+  .openrow input:disabled{opacity:.75}
+
+  .btn{
+    font:inherit;font-weight:700;font-size:16px;padding:13px 22px;border-radius:14px;border:2px solid #cbd5e1;
+    background:#f1f5f9;color:#1e293b;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{background:#e2e8f0}
+  .btn.primary{background:linear-gradient(90deg,#3b82f6,#2563eb);border:none;color:#ffffff}
+  .btn.primary:hover{filter:brightness(1.08)}
+
+  .fb{
+    margin-top:18px;border-radius:16px;padding:0 18px;max-height:0;overflow:hidden;
+    opacity:0;transition:max-height .3s ease,opacity .25s ease,padding .25s ease;
+    border:2px solid transparent;
+  }
+  .fb.show{max-height:900px;opacity:1;padding:18px}
+  .fb.good{background:#f0fdf4;border-color:#86efac}
+  .fb.bad{background:#fef2f2;border-color:#fca5a5}
+  .fbhead{font-weight:800;margin-bottom:8px;font-size:17px}
+  .fbc{margin-bottom:8px;font-size:16px}
+  .fbe{font-size:15px;color:#334155;margin-bottom:16px;line-height:1.5}
+
+  .fscore{font-size:52px;font-weight:900;color:#2563eb;line-height:1}
+  .fgrade{font-size:22px;font-weight:800;margin:12px 0 4px;color:#1e293b}
+  .fsub{color:#475569;font-size:15px;margin-bottom:6px}
+  .fh3{margin:24px 0 10px;font-size:14px;color:#475569;text-transform:uppercase;letter-spacing:.7px;font-weight:700}
+  .mlist{display:grid;gap:12px;margin-bottom:24px}
+  .mitem{background:#f8fafc;border:2px solid #e2e8f0;border-left:6px solid #ef4444;border-radius:14px;padding:14px 16px}
+  .mq{font-size:15px;margin-bottom:8px;font-weight:600;color:#1e293b}
+  .ma{font-size:15px;color:#166534;margin-bottom:6px}
+  .me{font-size:14px;color:#475569;line-height:1.45}
+
+  @media (max-width:520px){
+    .card{padding:18px}
+    .qtext{font-size:18px}
+    .brand{font-size:18px}
+    .opt{font-size:15px;padding:13px 15px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">🛡️🤖 Кибер<span>Щит</span> для 1–5 классов</div>
+    <div class="scorebox">Баллы: <b id="score">0</b> / 15</div>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="meta" id="counter">Готовы начать?</div>
+  <div class="card" id="screen"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ====================== ДАННЫЕ ЗАДАНИЙ ====================== */
+
+  const QUESTIONS = [
+    /* ---------- 4 задания с выбором одного ответа ---------- */
+    {
+      type: 'choice',
+      text: 'Какой пароль самый надёжный?',
+      options: [
+        '12345',
+        'qwerty',
+        'Солнышко-Луна-Кот-7',
+        'Моё имя'
+      ],
+      correct: 2,
+      explain: 'Длинный пароль из нескольких слов с цифрами запомнить легче, а взломать — сложнее. Простые пароли вроде «12345» или «qwerty» очень быстро подбирают злоумышленники.'
+    },
+    {
+      type: 'choice',
+      text: 'Незнакомец в интернете просит твой домашний адрес. Что делать?',
+      options: [
+        'Сказать адрес, чтобы он пришёл в гости',
+        'Не говорить адрес и рассказать родителям',
+        'Спросить, зачем ему адрес',
+        'Дать адрес школы'
+      ],
+      correct: 1,
+      explain: 'Личный адрес, номер телефона и школу нельзя сообщать незнакомцам в интернете. Если кто-то их просит — сразу расскажи родителям или учителю.'
+    },
+    {
+      type: 'choice',
+      text: 'Пришло сообщение: «Ты выиграл новый телефон! Перейди по ссылке и получи приз». Что делать?',
+      options: [
+        'Перейти по ссылке и получить приз',
+        'Не переходить по ссылке — это обман',
+        'Ответить и спросить подробности',
+        'Переслать сообщение друзьям'
+      ],
+      correct: 1,
+      explain: 'Такие сообщения часто пишут мошенники. Они хотят, чтобы ты перешёл по опасной ссылке. Не нажимай на неё и расскажи взрослым.'
+    },
+    {
+      type: 'choice',
+      text: 'В игре кто-то обзывается и пишет плохие слова. Что нужно сделать?',
+      options: [
+        'Обзываться в ответ',
+        'Молчать и ничего не делать',
+        'Заблокировать обидчика и рассказать взрослым',
+        'Удалить игру и никогда не играть'
+      ],
+      correct: 2,
+      explain: 'Если в интернете кто-то ведёт себя грубо, лучше заблокировать этого человека и рассказать родителям или учителю. Отвечать грубостью — не выход.'
+    },
+
+    /* ---------- 8 заданий «верно / неверно» ---------- */
+    {
+      type: 'tf',
+      text: 'Можно делиться своим паролем с лучшим другом.',
+      correct: false,
+      explain: 'Пароль — это секрет. Даже лучшему другу не стоит его говорить. Пароль должен знать только ты и твои родители.'
+    },
+    {
+      type: 'tf',
+      text: 'Если незнакомец в интернете предлагает встретиться, нужно согласиться, если он кажется добрым.',
+      correct: false,
+      explain: 'Нельзя соглашаться на встречи с незнакомцами из интернета. Всегда рассказывай о таких предложениях родителям.'
+    },
+    {
+      type: 'tf',
+      text: 'Личные фото можно выкладывать в интернет без разрешения родителей.',
+      correct: false,
+      explain: 'Прежде чем выкладывать фото, спроси разрешение у родителей. В интернете фото могут увидеть все, и это может быть опасно.'
+    },
+    {
+      type: 'tf',
+      text: 'Нужно всегда сообщать родителям, если в интернете что-то напугало или расстроило.',
+      correct: true,
+      explain: 'Родители помогут разобраться. Если тебе страшно или неприятно — не держи это в секрете, расскажи взрослым.'
+    },
+    {
+      type: 'tf',
+      text: 'Сложный пароль лучше, чем простой.',
+      correct: true,
+      explain: 'Сложный пароль труднее угадать и взломать. Чем длиннее пароль и чем больше в нём разных символов, тем он надёжнее.'
+    },
+    {
+      type: 'tf',
+      text: 'Можно нажимать на любые яркие баннеры с призами.',
+      correct: false,
+      explain: 'Яркие баннеры с призами часто бывают ловушкой. Нажимать на них опасно — можно попасть на вредный сайт.'
+    },
+    {
+      type: 'tf',
+      text: 'Если компьютер просит обновление, лучше сделать его позже.',
+      correct: false,
+      explain: 'Обновления делают компьютер безопаснее. Лучше не откладывать их, а установить, когда компьютер попросит.'
+    },
+    {
+      type: 'tf',
+      text: 'В интернете нужно вести себя вежливо, как и в реальной жизни.',
+      correct: true,
+      explain: 'Правила вежливости действуют и в интернете. Нельзя грубить, обзываться и писать плохие слова.'
+    },
+
+    /* ---------- 3 задания открытого типа ---------- */
+    {
+      type: 'open',
+      text: 'Как называется секретное слово, которое защищает твой аккаунт? (ответ — одно слово)',
+      answers: ['пароль'],
+      show: 'Пароль',
+      explain: 'Пароль — это секретное слово. Его нельзя никому говорить, кроме родителей. Пароль должен быть сложным.'
+    },
+    {
+      type: 'open',
+      text: 'Как называют человека, который взламывает компьютеры и ворует данные? (ответ — одно слово)',
+      answers: ['хакер', 'взломщик'],
+      show: 'Хакер (взломщик)',
+      explain: 'Хакер — это человек, который незаконно взламывает компьютеры и крадёт информацию. С хорошими хакерами ты можешь познакомиться на уроках информатики, но плохие хакеры — это преступники.'
+    },
+    {
+      type: 'open',
+      text: 'Что нужно сделать, если незнакомец в интернете зовёт тебя гулять? (напиши короткий ответ)',
+      answers: ['родител', 'взросл', 'не ходить', 'блокир', 'рассказать'],
+      show: 'Рассказать родителям, не ходить, заблокировать',
+      explain: 'Нельзя ходить на встречи с незнакомцами из интернета. Правильно — рассказать родителям, заблокировать незнакомца и не отвечать ему.'
+    }
+  ];
+
+  /* ====================== СОСТОЯНИЕ ИГРЫ ====================== */
+
+  const TYPE_LABEL = {
+    choice: 'Выбери ответ',
+    tf: 'Верно или неверно',
+    open: 'Напиши ответ'
+  };
+
+  const screen   = document.getElementById('screen');
+  const barEl    = document.getElementById('bar');
+  const counterEl= document.getElementById('counter');
+  const scoreEl  = document.getElementById('score');
+
+  let order = [];
+  let idx = 0;
+  let score = 0;
+  let answered = false;
+  let mistakes = [];
+
+  /* ====================== ВСПОМОГАТЕЛЬНЫЕ ====================== */
+
+  function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  function norm(s){
+    return String(s || '')
+      .toLowerCase()
+      .replace(/ё/g, 'е')
+      .replace(/[^a-zа-я0-9]/g, '');
+  }
+
+  function correctAnswerText(q){
+    if(q.type === 'choice') return q.options[q.correct];
+    if(q.type === 'tf')     return q.correct ? 'Верно' : 'Неверно';
+    return q.show;
+  }
+
+  function updateScore(){
+    scoreEl.textContent = score;
+  }
+
+  function setProgress(done, total){
+    barEl.style.width = (total ? (done / total) * 100 : 0) + '%';
+  }
+
+  /* ====================== ЭКРАНЫ ====================== */
+
+  function renderStart(){
+    setProgress(0, QUESTIONS.length);
+    counterEl.textContent = 'Готовы начать?';
+    screen.innerHTML =
+      '<h1 class="h1">🛡️🤖 КиберЩит</h1>' +
+      '<p class="lead">Мини-игра по кибербезопасности для учеников 1–5 классов. ' +
+      '15 заданий: выбери ответ, верно или неверно, напиши ответ.</p>' +
+      '<ul class="rules">' +
+        '<li>За каждый верный ответ — 1 балл. Максимум — 15 баллов.</li>' +
+        '<li>После каждого ответа ты увидишь объяснение — это полезный совет.</li>' +
+        '<li>Порядок заданий случайный, поэтому игра каждый раз новая.</li>' +
+        '<li>Игра работает без интернета: все задания уже внутри.</li>' +
+      '</ul>' +
+      '<button class="btn primary" id="startBtn">Начать игру</button>';
+
+    document.getElementById('startBtn').addEventListener('click', startGame);
+  }
+
+  function startGame(){
+    order = shuffle(QUESTIONS.map(function(_, i){ return i; }));
+    idx = 0;
+    score = 0;
+    mistakes = [];
+    updateScore();
+    renderQuestion();
+  }
+
+  function renderQuestion(){
+    answered = false;
+    const q = QUESTIONS[order[idx]];
+    const total = QUESTIONS.length;
+
+    counterEl.textContent = 'Вопрос ' + (idx + 1) + ' из ' + total;
+    setProgress(idx, total);
+
+    let html = '<div class="tag ' + q.type + '">' + TYPE_LABEL[q.type] + '</div>';
+    html += '<h2 class="qtext">' + q.text + '</h2>';
+
+    if(q.type === 'choice'){
+      const shuffled = shuffle(q.options.map(function(t, i){ return { t: t, i: i }; }));
+      html += '<div class="opts" id="opts">';
+      shuffled.forEach(function(o){
+        html += '<button class="opt" data-i="' + o.i + '">' + o.t + '</button>';
+      });
+      html += '</div>';
+    } else if(q.type === 'tf'){
+      html += '<div class="opts" id="opts">' +
+                '<button class="opt" data-i="1">✅ Верно</button>' +
+                '<button class="opt" data-i="0">❌ Неверно</button>' +
+              '</div>';
+    } else {
+      html += '<div class="openrow">' +
+                '<input id="openInput" type="text" autocomplete="off" spellcheck="false" placeholder="Напиши ответ...">' +
+                '<button class="btn primary" id="openBtn">Ответить</button>' +
+              '</div>';
+    }
+
+    html += '<div id="fb" class="fb" role="status" aria-live="polite"></div>';
+
+    screen.innerHTML = html;
+
+    if(q.type === 'choice' || q.type === 'tf'){
+      const all = Array.prototype.slice.call(screen.querySelectorAll('.opt'));
+      all.forEach(function(b){
+        b.addEventListener('click', function(){ answerChoice(q, b, all); });
+      });
+    } else {
+      const inp = document.getElementById('openInput');
+      const btn = document.getElementById('openBtn');
+      const submit = function(){ answerOpen(q, inp); };
+      btn.addEventListener('click', submit);
+      inp.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){ e.preventDefault(); submit(); }
+      });
+      setTimeout(function(){ inp.focus(); }, 30);
+    }
+
+    screen.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  /* ====================== ОТВЕТЫ ====================== */
+
+  function answerChoice(q, btn, all){
+    if(answered) return;
+    answered = true;
+
+    const picked = Number(btn.dataset.i);
+    const isCorrect = (q.type === 'choice')
+      ? (picked === q.correct)
+      : ((picked === 1) === q.correct);
+
+    all.forEach(function(b){ b.disabled = true; });
+
+    if(isCorrect){
+      btn.classList.add('ok');
+      score++;
+      updateScore();
+    } else {
+      btn.classList.add('bad');
+      all.forEach(function(b){
+        const bi = Number(b.dataset.i);
+        const good = (q.type === 'choice')
+          ? (bi === q.correct)
+          : ((bi === 1) === q.correct);
+        if(good) b.classList.add('ok');
+      });
+      mistakes.push({ q: q });
+    }
+
+    showFeedback(q, isCorrect);
+  }
+
+  function answerOpen(q, inp){
+    if(answered) return;
+    const value = norm(inp.value);
+    if(!value){
+      inp.focus();
+      inp.style.borderColor = '#ef4444';
+      setTimeout(function(){ inp.style.borderColor = ''; }, 900);
+      return;
+    }
+    answered = true;
+
+    const isCorrect = q.answers.some(function(a){
+      return value.indexOf(norm(a)) !== -1;
+    });
+
+    inp.disabled = true;
+    document.getElementById('openBtn').disabled = true;
+
+    if(isCorrect){
+      score++;
+      updateScore();
+    } else {
+      mistakes.push({ q: q });
+    }
+
+    showFeedback(q, isCorrect);
+  }
+
+  function showFeedback(q, isCorrect){
+    const fb = document.getElementById('fb');
+    const isLast = (idx === order.length - 1);
+
+    fb.className = 'fb show ' + (isCorrect ? 'good' : 'bad');
+    fb.innerHTML =
+      '<div class="fbhead">' + (isCorrect ? '✅ Молодец! Верно!' : '❌ Неверно') + '</div>' +
+      (isCorrect ? '' : '<div class="fbc">Правильный ответ: <b>' + correctAnswerText(q) + '</b></div>') +
+      '<div class="fbe">' + q.explain + '</div>' +
+      '<button class="btn primary" id="nextBtn">' +
+        (isLast ? 'Показать результат' : 'Далее →') +
+      '</button>';
+
+    const nextBtn = document.getElementById('nextBtn');
+    nextBtn.addEventListener('click', nextQuestion);
+    setTimeout(function(){
+      try{ nextBtn.focus(); }catch(e){}
+    }, 60);
+  }
+
+  function nextQuestion(){
+    idx++;
+    if(idx >= order.length){
+      renderFinish();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  /* ====================== ФИНАЛ ====================== */
+
+  function renderFinish(){
+    const total = QUESTIONS.length;
+    const pct = Math.round((score / total) * 100);
+
+    setProgress(1, 1);
+    counterEl.textContent = 'Игра завершена';
+
+    let title;
+    if(score >= 14)      title = '🏆 Ты настоящий КиберГерой!';
+    else if(score >= 11) title = '👍 Отличный результат!';
+    else if(score >= 8)  title = '📚 Хорошо, но можно лучше';
+    else                 title = '💡 Повтори правила безопасности';
+
+    let html = '<div class="fscore">' + score + ' / ' + total + '</div>' +
+               '<div class="fgrade">' + title + '</div>' +
+               '<div class="fsub">Правильных ответов: ' + pct + '%</div>';
+
+    if(mistakes.length){
+      html += '<h3 class="fh3">Разбор ошибок</h3><div class="mlist">';
+      mistakes.forEach(function(m){
+        html += '<div class="mitem">' +
+                  '<div class="mq">' + m.q.text + '</div>' +
+                  '<div class="ma">Правильный ответ: <b>' + correctAnswerText(m.q) + '</b></div>' +
+                  '<div class="me">' + m.q.explain + '</div>' +
+                '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<p class="lead" style="margin-top:16px">Ошибок нет! Ты отлично знаешь правила безопасности в интернете. ' +
+              'Расскажи о них друзьям и родителям.</p>';
+    }
+
+    html += '<button class="btn primary" id="restartBtn">Пройти заново</button>';
+
+    screen.innerHTML = html;
+
+    document.getElementById('restartBtn').addEventListener('click', function(){
+      renderStart();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ====================== СТАРТ ====================== */
+
+  renderStart();
+
+})();
+</script>
+</body>
+</html>
